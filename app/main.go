@@ -14,6 +14,6 @@ func main() {
 	//fmt.Print("$ ")
 
 	// Captures the user's command in the "command" variable
-	command, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	command, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 	fmt.Println(command[:len(command)-1] + ": command not found")
 }
