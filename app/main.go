@@ -16,6 +16,10 @@ func main() {
 
 		// Captures the user's command in the "command" variable
 		command, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+		if command[:len(command)-1] == "exit" {
+			break
+		}
+
 		fmt.Println(command[:len(command)-1] + ": command not found")
 	}
 }
