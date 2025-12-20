@@ -24,9 +24,9 @@ func main() {
 		} else if command[0:4] == "type" {
 			builtin := command[5:len(command)-1]
 			if builtin == "echo" || builtin == "type" || builtin == "exit" {
-				fmt.Printf("%v is a shell builtin" + builtin)
+				fmt.Printf("%v is a shell builtin", builtin)
 			} else {
-				fmt.Printf("%v: not found" + builtin)
+				fmt.Printf("%v: not found", builtin)
 			}
 		} else {
 			fmt.Println(command[:len(command)-1] + ": command not found")
