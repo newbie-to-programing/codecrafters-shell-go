@@ -22,7 +22,7 @@ func main() {
 		} else if command[0:4] == "echo" {
 			fmt.Print(command[5:])
 		} else if command[0:4] == "type" {
-			builtin := command[5:len(command)-1]
+			builtin := command[5:]
 			if builtin == "echo" || builtin == "type" || builtin == "exit" {
 				fmt.Printf("%v is a shell builtin", builtin)
 			} else {
