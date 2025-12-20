@@ -20,7 +20,7 @@ func main() {
 		if command[:len(command)-1] == "exit" {
 			break
 		} else if command[0:4] == "echo" {
-			fmt.Print(command[5:len(command)-1])
+			fmt.Print(command[5:])
 		} else {
 			fmt.Println(command[:len(command)-1] + ": command not found")
 		}
