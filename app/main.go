@@ -22,7 +22,7 @@ func main() {
 		commandName := command[0:4]
 		switch commandName {
 		case ExitCommand:
-			break
+			return
 		case EchoCommand:
 			processEchoCommand(command)
 		case TypeCommand:
