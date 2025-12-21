@@ -29,7 +29,7 @@ func handleTypeCommand(args []string) {
 
 func isBuiltin(name string) bool {
 	switch name {
-	case ExitCommand, EchoCommand, TypeCommand:
+	case ExitCommand, EchoCommand, TypeCommand, PwdCommand:
 		return true
 	}
 	return false
