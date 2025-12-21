@@ -37,6 +37,8 @@ func main() {
 			handleTypeCommand(args)
 		case PwdCommand:
 			handlePwdCommand()
+		case CdCommand:
+			handleCdCommand(args)
 		default:
 			handleExternalCommand(command, args)
 		}

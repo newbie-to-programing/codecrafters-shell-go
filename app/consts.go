@@ -5,4 +5,5 @@ const (
 	TypeCommand = "type"
 	EchoCommand = "echo"
 	PwdCommand  = "pwd"
+	CdCommand   = "cd"
 )

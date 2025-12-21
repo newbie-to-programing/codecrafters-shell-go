@@ -29,7 +29,7 @@ func handleTypeCommand(args []string) {
 
 func isBuiltin(name string) bool {
 	switch name {
-	case ExitCommand, EchoCommand, TypeCommand, PwdCommand:
+	case ExitCommand, EchoCommand, TypeCommand, PwdCommand, CdCommand:
 		return true
 	}
 	return false
@@ -70,4 +70,18 @@ func handlePwdCommand() {
 	}
 
 	fmt.Printf("%v\n", dir)
+}
+
+func handleCdCommand(args []string) {
+	if len(args) == 0 {
+		return
+	}
+
+	targetDir := args[0]
+
+	err := os.Chdir(targetDir)
+	if err != nil {
+		fmt.Printf("cd: %v: No such file or directory\n", targetDir)
+		return
+	}
 }
