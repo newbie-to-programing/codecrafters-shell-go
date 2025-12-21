@@ -45,6 +45,8 @@ func main() {
 							continue
 						}
 
+						fmt.Printf("full path %s\n", filepath.Join(dir, entry.Name()))
+
 						info, err := entry.Info()
 						if err != nil {
 							continue
@@ -52,7 +54,7 @@ func main() {
 
 						mode := info.Mode()
 						if mode.Perm()&0111 != 0 {
-							fmt.Printf("%s is %s", builtin, filepath.Join(dir, entry.Name()))
+							fmt.Printf("%s is %s\n", builtin, filepath.Join(dir, entry.Name()))
 							hasFound = true
 						}
 					}
@@ -63,7 +65,7 @@ func main() {
 				}
 
 				if !hasFound {
-					fmt.Printf("%s: not found", builtin)
+					fmt.Printf("%s: not found\n", builtin)
 				}
 			}
 		} else {
