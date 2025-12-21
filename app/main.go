@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"bufio"
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
-	"log"
 )
 
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
@@ -24,11 +24,11 @@ func main() {
 		} else if command[0:4] == "echo" {
 			fmt.Print(command[5:])
 		} else if command[0:4] == "type" {
-			builtin := command[5:len(command)-1]
+			builtin := command[5 : len(command)-1]
 			if builtin == "echo" || builtin == "type" || builtin == "exit" {
 				fmt.Printf("%v is a shell builtin\n", builtin)
 			} else {
-				pathList := "" // todo: get from input
+				pathList := os.Getenv("PATH")
 
 				dirs := filepath.SplitList(pathList)
 
@@ -45,7 +45,9 @@ func main() {
 							continue
 						}
 
-						fmt.Printf("full path %s\n", filepath.Join(dir, entry.Name()))
+						if entry.Name() != builtin {
+							continue
+						}
 
 						info, err := entry.Info()
 						if err != nil {
