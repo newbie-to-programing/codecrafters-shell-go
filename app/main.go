@@ -36,7 +36,11 @@ func main() {
 				for _, dir := range dirs {
 					entries, err := os.ReadDir(dir)
 					if err != nil {
-						log.Printf("Could not read %s: %v", dir, err)
+						if os.IsNotExist(err) {
+							continue
+						}
+						// Handle other real errors (like permission denied)
+						log.Printf("Error reading %s: %v", dir, err)
 						continue
 					}
 
