@@ -5,77 +5,146 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
 var _ = fmt.Print
 
 func main() {
-	for true {
-		// TODO: Uncomment the code below to pass the first stage
+	for {
 		fmt.Print("$ ")
 
-		// Captures the user's command in the "command" variable
 		command, _ := bufio.NewReader(os.Stdin).ReadString('\n')
 
-		if command[:len(command)-1] == "exit" {
+		commandName := command[0:4]
+		switch commandName {
+		case ExitCommand:
 			break
-		} else if command[0:4] == "echo" {
-			fmt.Print(command[5:])
-		} else if command[0:4] == "type" {
-			builtin := command[5 : len(command)-1]
-			if builtin == "echo" || builtin == "type" || builtin == "exit" {
-				fmt.Printf("%v is a shell builtin\n", builtin)
-			} else {
-				pathList := os.Getenv("PATH")
+		case EchoCommand:
+			processEchoCommand(command)
+		case TypeCommand:
+			processTypeCommand(command)
+		default:
+			commandWithoutNextLine := strings.TrimSpace(command)
+			arguments := strings.Split(commandWithoutNextLine, " ")
+			executable := arguments[0]
+			actualArguments := arguments[1:]
 
-				dirs := filepath.SplitList(pathList)
+			pathList := os.Getenv("PATH")
 
-				hasFound := false
-				for _, dir := range dirs {
-					entries, err := os.ReadDir(dir)
-					if err != nil {
-						if os.IsNotExist(err) {
-							continue
-						}
-						// Handle other real errors (like permission denied)
-						log.Printf("Error reading %s: %v", dir, err)
+			dirs := filepath.SplitList(pathList)
+
+			hasFound := false
+			for _, dir := range dirs {
+				entries, err := os.ReadDir(dir)
+				if err != nil {
+					if os.IsNotExist(err) {
+						continue
+					}
+					// Handle other real errors (like permission denied)
+					log.Printf("Error reading %s: %v", dir, err)
+					continue
+				}
+
+				for _, entry := range entries {
+					if entry.IsDir() {
 						continue
 					}
 
-					for _, entry := range entries {
-						if entry.IsDir() {
-							continue
+					if entry.Name() != executable {
+						if entry.Name() == "hello" {
+							fmt.Println(executable == entry.Name())
+							fmt.Printf("entry: %v, exec: %q", entry.Name(), executable)
 						}
-
-						if entry.Name() != builtin {
-							continue
-						}
-
-						info, err := entry.Info()
-						if err != nil {
-							continue
-						}
-
-						mode := info.Mode()
-						if mode.Perm()&0111 != 0 {
-							fmt.Printf("%s is %s\n", builtin, filepath.Join(dir, entry.Name()))
-							hasFound = true
-						}
+						continue
 					}
 
-					if hasFound {
-						break
+					info, err := entry.Info()
+					if err != nil {
+						continue
+					}
+
+					mode := info.Mode()
+					if mode.Perm()&0111 != 0 {
+						cmd := exec.Command(filepath.Join(dir, entry.Name()), actualArguments...)
+						// Redirect the command's output directly to the current terminal
+						cmd.Stdout = os.Stdout
+						cmd.Stderr = os.Stderr
+						// Also connect Stdin if the program needs user input
+						cmd.Stdin = os.Stdin
+
+						err = cmd.Run()
+						if err != nil {
+							fmt.Printf("%s: command not found\n", executable)
+						}
+						hasFound = true
 					}
 				}
 
-				if !hasFound {
-					fmt.Printf("%s: not found\n", builtin)
+				if hasFound {
+					break
 				}
 			}
-		} else {
-			fmt.Println(command[:len(command)-1] + ": command not found")
+		}
+	}
+}
+
+func processEchoCommand(command string) {
+	fmt.Print(command[5:])
+}
+
+func processTypeCommand(command string) {
+	builtin := command[5 : len(command)-1]
+	if builtin == "echo" || builtin == "type" || builtin == "exit" {
+		fmt.Printf("%v is a shell builtin\n", builtin)
+	} else {
+		pathList := os.Getenv("PATH")
+
+		dirs := filepath.SplitList(pathList)
+
+		hasFound := false
+		for _, dir := range dirs {
+			entries, err := os.ReadDir(dir)
+			if err != nil {
+				if os.IsNotExist(err) {
+					continue
+				}
+				// Handle other real errors (like permission denied)
+				log.Printf("Error reading %s: %v", dir, err)
+				continue
+			}
+
+			for _, entry := range entries {
+				if entry.IsDir() {
+					continue
+				}
+
+				if entry.Name() != builtin {
+					continue
+				}
+
+				info, err := entry.Info()
+				if err != nil {
+					continue
+				}
+
+				mode := info.Mode()
+				if mode.Perm()&0111 != 0 {
+					fmt.Printf("%s is %s\n", builtin, filepath.Join(dir, entry.Name()))
+					hasFound = true
+				}
+			}
+
+			if hasFound {
+				break
+			}
+		}
+
+		if !hasFound {
+			fmt.Printf("%s: not found\n", builtin)
 		}
 	}
 }
