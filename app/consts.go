@@ -4,4 +4,5 @@ const (
 	ExitCommand = "exit"
 	TypeCommand = "type"
 	EchoCommand = "echo"
+	PwdCommand  = "pwd"
 )

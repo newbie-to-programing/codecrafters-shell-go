@@ -61,3 +61,13 @@ func handleExternalCommand(command string, args []string) {
 		fmt.Printf("%s: command not found\n", command)
 	}
 }
+
+func handlePwdCommand() {
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("cannot print working directory: %v\n", err)
+		return
+	}
+
+	fmt.Printf("%v\n", dir)
+}

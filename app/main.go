@@ -35,6 +35,8 @@ func main() {
 			fmt.Println(strings.Join(args, " "))
 		case TypeCommand:
 			handleTypeCommand(args)
+		case PwdCommand:
+			handlePwdCommand()
 		default:
 			handleExternalCommand(command, args)
 		}
