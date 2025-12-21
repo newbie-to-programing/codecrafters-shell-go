@@ -29,7 +29,7 @@ func main() {
 			} else {
 				pathList := "" // todo: get from input
 
-				dirs = filepath.SplitList(pathList)
+				dirs := filepath.SplitList(pathList)
 
 				hasFound := false
 				for _, dir := range dirs {
