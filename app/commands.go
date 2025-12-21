@@ -79,6 +79,11 @@ func handleCdCommand(args []string) {
 
 	targetDir := args[0]
 
+	if targetDir == "~" {
+		home, _ := os.UserHomeDir()
+		targetDir = home
+	}
+
 	err := os.Chdir(targetDir)
 	if err != nil {
 		fmt.Printf("cd: %v: No such file or directory\n", targetDir)
