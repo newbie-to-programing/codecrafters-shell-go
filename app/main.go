@@ -31,7 +31,7 @@ func main() {
 			commandWithoutNextLine := strings.TrimSpace(command)
 			arguments := strings.Split(commandWithoutNextLine, " ")
 			executable := arguments[0]
-			actualArguments := arguments[1:]
+			//actualArguments := arguments[1:]
 
 			pathList := os.Getenv("PATH")
 
