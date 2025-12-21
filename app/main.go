@@ -69,7 +69,7 @@ func main() {
 
 					mode := info.Mode()
 					if mode.Perm()&0111 != 0 {
-						cmd := exec.Command(filepath.Join(dir, entry.Name()), actualArguments...)
+						cmd := exec.Command(filepath.Join(dir, entry.Name()), arguments...)
 						// Redirect the command's output directly to the current terminal
 						cmd.Stdout = os.Stdout
 						cmd.Stderr = os.Stderr
