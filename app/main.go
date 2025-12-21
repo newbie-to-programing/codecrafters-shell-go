@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -32,6 +33,21 @@ func main() {
 		case ExitCommand:
 			os.Exit(0)
 		case EchoCommand:
+			if strings.Contains(input, "'") {
+				// 1. Replace every occurrence of two single quotes with an empty string
+				replaced := strings.ReplaceAll(input, "''", "")
+
+				// 2. This regex finds either text inside single quotes OR non-space characters
+				re := regexp.MustCompile(`'[^']*'|[^\s]+`)
+				parts = re.FindAllString(replaced, -1)
+
+				args = make([]string, 0, len(parts))
+				for _, p := range parts[1:] {
+					clean := strings.ReplaceAll(p, "'", "")
+					args = append(args, clean)
+				}
+			}
+
 			fmt.Println(strings.Join(args, " "))
 		case TypeCommand:
 			handleTypeCommand(args)
