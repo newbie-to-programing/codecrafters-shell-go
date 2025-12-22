@@ -39,11 +39,9 @@ func main() {
 
 		cleaned := make([]string, 0, len(parts))
 		for _, p := range parts {
-			fmt.Printf("part: %q\n", p)
 			clean := strings.ReplaceAll(p, "'", "")
 			clean = strings.ReplaceAll(p, "\"", "")
 			cleaned = append(cleaned, clean)
-			fmt.Printf("clean: %q\n", clean)
 		}
 
 		command := cleaned[0]
