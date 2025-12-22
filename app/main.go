@@ -40,7 +40,7 @@ func main() {
 		cleaned := make([]string, 0, len(parts))
 		for _, p := range parts {
 			clean := strings.ReplaceAll(p, "'", "")
-			clean = strings.ReplaceAll(p, "\"", "")
+			clean = strings.ReplaceAll(clean, "\"", "")
 			cleaned = append(cleaned, clean)
 		}
 
