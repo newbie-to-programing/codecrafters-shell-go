@@ -25,16 +25,22 @@ func main() {
 			continue
 		}
 
-		// 1. Replace every occurrence of two single quotes with an empty string
-		replaced := strings.ReplaceAll(input, "''", "")
+		var replaced string
+		var re *regexp.Regexp
+		if strings.Contains(input, "\"\"") {
+			replaced = strings.ReplaceAll(input, "\"\"", "") // double quotes
+			re = regexp.MustCompile(`"[^"]*"|[^\s]+`)
+		} else {
+			replaced = strings.ReplaceAll(input, "''", "") // single quotes
+			re = regexp.MustCompile(`'[^']*'|[^\s]+`)
+		}
 
-		// 2. This regex finds either text inside single quotes OR non-space characters
-		re := regexp.MustCompile(`'[^']*'|[^\s]+`)
 		parts := re.FindAllString(replaced, -1)
 
 		cleaned := make([]string, 0, len(parts))
 		for _, p := range parts {
 			clean := strings.ReplaceAll(p, "'", "")
+			clean = strings.ReplaceAll(p, "\"", "")
 			cleaned = append(cleaned, clean)
 		}
 
