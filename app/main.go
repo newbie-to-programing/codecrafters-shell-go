@@ -27,21 +27,24 @@ func main() {
 
 		var replaced string
 		var re *regexp.Regexp
+		var parts []string
+		cleaned := make([]string, 0, len(parts))
 		if strings.Contains(input, "\"") {
 			replaced = strings.ReplaceAll(input, "\"\"", "") // double quotes
 			re = regexp.MustCompile(`"[^"]*"|[^\s]+`)
+			parts = re.FindAllString(replaced, -1)
+			for _, p := range parts {
+				clean := strings.ReplaceAll(p, "\"", "")
+				cleaned = append(cleaned, clean)
+			}
 		} else {
 			replaced = strings.ReplaceAll(input, "''", "") // single quotes
 			re = regexp.MustCompile(`'[^']*'|[^\s]+`)
-		}
-
-		parts := re.FindAllString(replaced, -1)
-
-		cleaned := make([]string, 0, len(parts))
-		for _, p := range parts {
-			clean := strings.ReplaceAll(p, "'", "")
-			clean = strings.ReplaceAll(clean, "\"", "")
-			cleaned = append(cleaned, clean)
+			parts = re.FindAllString(replaced, -1)
+			for _, p := range parts {
+				clean := strings.ReplaceAll(p, "'", "")
+				cleaned = append(cleaned, clean)
+			}
 		}
 
 		command := cleaned[0]
