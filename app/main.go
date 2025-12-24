@@ -11,6 +11,11 @@ import (
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
 var _ = fmt.Print
 
+func processDoubleQuotes(content string) string {
+	re := regexp.MustCompile(`\\(["\\])`)
+	return re.ReplaceAllString(content, "$1")
+}
+
 func main() {
 	for {
 		fmt.Print("$ ")
@@ -59,7 +64,7 @@ func main() {
 				// Group 1: Double Quotes. Content is input[m[2]:m[3]]
 				// Note: For now, we treat backslashes inside double quotes as literal
 				// per your current stage requirements.
-				currentArg.WriteString(input[m[2]:m[3]])
+				currentArg.WriteString(processDoubleQuotes(input[m[2]:m[3]]))
 			} else if m[4] != -1 {
 				// Group 2: Single Quotes. Content is input[m[4]:m[5]]
 				currentArg.WriteString(input[m[4]:m[5]])
