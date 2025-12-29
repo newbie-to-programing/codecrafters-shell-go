@@ -1,30 +1,35 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
-func handleTypeCommand(args []string) {
+func handleEchoCommand(args []string) string {
+	return fmt.Sprintln(strings.Join(args, " "))
+}
+
+func handleTypeCommand(args []string) (string, error) {
 	if len(args) == 0 {
-		return
+		return "", nil
 	}
 
 	target := args[0]
 
 	if isBuiltin(target) {
-		fmt.Printf("%s is a shell builtin\n", target)
-		return
+		return fmt.Sprintf("%s is a shell builtin\n", target), nil
 	}
 
 	if path, found := findInPath(target); found {
-		fmt.Printf("%s is %s\n", target, path)
-		return
+		return fmt.Sprintf("%s is %s\n", target, path), nil
 	}
 
-	fmt.Printf("%s: not found\n", target)
+	return fmt.Sprintf("%s: not found\n", target), nil
 }
 
 func isBuiltin(name string) bool {
@@ -50,31 +55,36 @@ func findInPath(name string) (string, bool) {
 	return "", false
 }
 
-func handleExternalCommand(command string, args []string) {
+func handleExternalCommand(command string, args []string) (string, error) {
 	cmd := exec.Command(command, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
+
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	var errOut bytes.Buffer
+	cmd.Stderr = &errOut
+	//cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
 	if err != nil {
-		fmt.Printf("%s: command not found\n", command)
+		return fmt.Sprintf("%s: command not found\n", command), errors.New(errOut.String())
 	}
+
+	return out.String(), nil
 }
 
-func handlePwdCommand() {
+func handlePwdCommand() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
-		fmt.Printf("cannot print working directory: %v\n", err)
-		return
+		errMsg := fmt.Sprintf("cannot print working directory: %v\n", err)
+		return errMsg, errors.New(errMsg)
 	}
 
-	fmt.Printf("%v\n", dir)
+	return fmt.Sprintf("%v\n", dir), nil
 }
 
-func handleCdCommand(args []string) {
+func handleCdCommand(args []string) (string, error) {
 	if len(args) == 0 {
-		return
+		return "", nil
 	}
 
 	targetDir := args[0]
@@ -86,7 +96,9 @@ func handleCdCommand(args []string) {
 
 	err := os.Chdir(targetDir)
 	if err != nil {
-		fmt.Printf("cd: %v: No such file or directory\n", targetDir)
-		return
+		errMsg := fmt.Sprintf("cd: %v: No such file or directory\n", targetDir)
+		return errMsg, errors.New(errMsg)
 	}
+
+	return "", nil
 }
