@@ -66,7 +66,11 @@ func handleExternalCommand(command string, args []string) (string, error) {
 
 	err := cmd.Run()
 	if err != nil {
-		return out.String(), errors.New(errOut.String())
+		ret := fmt.Sprintf("%s: command not found\n", command)
+		if out.String() != "" {
+			ret = fmt.Sprintf("%s\n", out.String())
+		}
+		return ret, errors.New(errOut.String())
 	}
 
 	return out.String(), nil
