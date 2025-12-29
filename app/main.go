@@ -153,7 +153,6 @@ func handleOutput(result CommandResult, redirectOp, filename string) {
 
 	if result.Err != nil {
 		fmt.Print(result.Err.Error())
-		return
 	}
 
 	// Handle Redirection
