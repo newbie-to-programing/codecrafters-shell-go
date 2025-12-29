@@ -157,7 +157,7 @@ func handleOutput(result CommandResult, redirectOp, filename string) {
 	}
 
 	// Handle Redirection
-	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+	flags := os.O_WRONLY | os.O_CREATE | os.O_APPEND
 	// if redirectOp == ">>" { flags = os.O_WRONLY | os.O_CREATE | os.O_APPEND }
 
 	file, err := os.OpenFile(filename, flags, 0644)
