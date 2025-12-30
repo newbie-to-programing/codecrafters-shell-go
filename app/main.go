@@ -47,12 +47,16 @@ func main() {
 			os.Exit(0)
 		case EchoCommand:
 			res.Output = handleEchoCommand(otherArgs)
+			res.Stdout = res.Output
 		case TypeCommand:
 			res.Output, res.Err = handleTypeCommand(otherArgs)
+			res.Stdout = res.Output
 		case PwdCommand:
 			res.Output, res.Err = handlePwdCommand()
+			res.Stdout = res.Output
 		case CdCommand:
 			res.Output, res.Err = handleCdCommand(otherArgs)
+			res.Stdout = res.Output
 		default:
 			res.Output, res.Stdout, res.Err = handleExternalCommand(command, otherArgs)
 		}
