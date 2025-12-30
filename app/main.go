@@ -151,8 +151,19 @@ func handleOutput(result CommandResult, redirectOp, filename string) {
 		return
 	}
 
-	if result.Err != nil {
-		fmt.Print(result.Err.Error())
+	var toBeWrittenToTerminal string
+	var toBeWrittenToFile string
+
+	if redirectOp == "2>" {
+		toBeWrittenToFile = result.Err.Error()
+		toBeWrittenToTerminal = result.Output
+	} else {
+		toBeWrittenToFile = result.Output
+		toBeWrittenToTerminal = result.Err.Error()
+	}
+
+	if toBeWrittenToTerminal != "" {
+		fmt.Print(toBeWrittenToTerminal)
 	}
 
 	// Handle Redirection
@@ -166,5 +177,5 @@ func handleOutput(result CommandResult, redirectOp, filename string) {
 	}
 	defer file.Close()
 
-	fmt.Fprint(file, result.Output)
+	fmt.Fprint(file, toBeWrittenToFile)
 }
