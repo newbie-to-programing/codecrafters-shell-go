@@ -14,22 +14,22 @@ func handleEchoCommand(args []string) string {
 	return fmt.Sprintln(strings.Join(args, " "))
 }
 
-func handleTypeCommand(args []string) (string, error) {
+func handleTypeCommand(args []string) string {
 	if len(args) == 0 {
-		return "", nil
+		return ""
 	}
 
 	target := args[0]
 
 	if isBuiltin(target) {
-		return fmt.Sprintf("%s is a shell builtin\n", target), nil
+		return fmt.Sprintf("%s is a shell builtin\n", target)
 	}
 
 	if path, found := findInPath(target); found {
-		return fmt.Sprintf("%s is %s\n", target, path), nil
+		return fmt.Sprintf("%s is %s\n", target, path)
 	}
 
-	return fmt.Sprintf("%s: not found\n", target), nil
+	return fmt.Sprintf("%s: not found\n", target)
 }
 
 func isBuiltin(name string) bool {
@@ -72,19 +72,18 @@ func handleExternalCommand(command string, args []string) (string, string, error
 	return out.String(), out.String(), nil
 }
 
-func handlePwdCommand() (string, error) {
+func handlePwdCommand() string {
 	dir, err := os.Getwd()
 	if err != nil {
-		errMsg := fmt.Sprintf("cannot print working directory: %v\n", err)
-		return errMsg, errors.New(errMsg)
+		return fmt.Sprintf("cannot print working directory: %v\n", err)
 	}
 
-	return fmt.Sprintf("%v\n", dir), nil
+	return fmt.Sprintf("%v\n", dir)
 }
 
-func handleCdCommand(args []string) (string, error) {
+func handleCdCommand(args []string) string {
 	if len(args) == 0 {
-		return "", nil
+		return ""
 	}
 
 	targetDir := args[0]
@@ -96,9 +95,8 @@ func handleCdCommand(args []string) (string, error) {
 
 	err := os.Chdir(targetDir)
 	if err != nil {
-		errMsg := fmt.Sprintf("cd: %v: No such file or directory\n", targetDir)
-		return errMsg, errors.New(errMsg)
+		return fmt.Sprintf("cd: %v: No such file or directory\n", targetDir)
 	}
 
-	return "", nil
+	return ""
 }

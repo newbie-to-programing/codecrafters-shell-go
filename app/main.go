@@ -11,7 +11,7 @@ import (
 type CommandResult struct {
 	Output string
 	Stdout string
-	Err    error
+	Stderr error
 }
 
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
@@ -46,19 +46,23 @@ func main() {
 		case ExitCommand:
 			os.Exit(0)
 		case EchoCommand:
-			res.Output = handleEchoCommand(otherArgs)
-			res.Stdout = res.Output
+			ret := handleEchoCommand(otherArgs)
+			res.Output = ret
+			res.Stdout = ret
 		case TypeCommand:
-			res.Output, res.Err = handleTypeCommand(otherArgs)
-			res.Stdout = res.Output
+			ret := handleTypeCommand(otherArgs)
+			res.Output = ret
+			res.Stdout = ret
 		case PwdCommand:
-			res.Output, res.Err = handlePwdCommand()
-			res.Stdout = res.Output
+			ret := handlePwdCommand()
+			res.Output = ret
+			res.Stdout = ret
 		case CdCommand:
-			res.Output, res.Err = handleCdCommand(otherArgs)
-			res.Stdout = res.Output
+			ret := handleCdCommand(otherArgs)
+			res.Output = ret
+			res.Stdout = ret
 		default:
-			res.Output, res.Stdout, res.Err = handleExternalCommand(command, otherArgs)
+			res.Output, res.Stdout, res.Stderr = handleExternalCommand(command, otherArgs)
 		}
 
 		handleOutput(res, redirectOp, outFile)
@@ -158,16 +162,15 @@ func handleOutput(result CommandResult, redirectOp, filename string) {
 
 	var toBeWrittenToTerminal string
 	var toBeWrittenToFile string
-
 	if redirectOp == "2>" {
-		if result.Err != nil {
-			toBeWrittenToFile = result.Err.Error()
-		}
 		toBeWrittenToTerminal = result.Stdout
+		if result.Stderr != nil {
+			toBeWrittenToFile = result.Stderr.Error()
+		}
 	} else {
 		toBeWrittenToFile = result.Stdout
-		if result.Err != nil {
-			toBeWrittenToTerminal = result.Err.Error()
+		if result.Stderr != nil {
+			toBeWrittenToTerminal = result.Stderr.Error()
 		}
 	}
 
