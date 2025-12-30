@@ -155,11 +155,15 @@ func handleOutput(result CommandResult, redirectOp, filename string) {
 	var toBeWrittenToFile string
 
 	if redirectOp == "2>" {
-		toBeWrittenToFile = result.Err.Error()
+		if result.Err != nil {
+			toBeWrittenToFile = result.Err.Error()
+		}
 		toBeWrittenToTerminal = result.Output
 	} else {
 		toBeWrittenToFile = result.Output
-		toBeWrittenToTerminal = result.Err.Error()
+		if result.Err != nil {
+			toBeWrittenToTerminal = result.Err.Error()
+		}
 	}
 
 	if toBeWrittenToTerminal != "" {
