@@ -10,6 +10,7 @@ import (
 
 type CommandResult struct {
 	Output string
+	Stdout string
 	Err    error
 }
 
@@ -53,7 +54,7 @@ func main() {
 		case CdCommand:
 			res.Output, res.Err = handleCdCommand(otherArgs)
 		default:
-			res.Output, res.Err = handleExternalCommand(command, otherArgs)
+			res.Output, res.Stdout, res.Err = handleExternalCommand(command, otherArgs)
 		}
 
 		handleOutput(res, redirectOp, outFile)
@@ -158,9 +159,9 @@ func handleOutput(result CommandResult, redirectOp, filename string) {
 		if result.Err != nil {
 			toBeWrittenToFile = result.Err.Error()
 		}
-		toBeWrittenToTerminal = result.Output
+		toBeWrittenToTerminal = result.Stdout
 	} else {
-		toBeWrittenToFile = result.Output
+		toBeWrittenToFile = result.Stdout
 		if result.Err != nil {
 			toBeWrittenToTerminal = result.Err.Error()
 		}

@@ -55,7 +55,7 @@ func findInPath(name string) (string, bool) {
 	return "", false
 }
 
-func handleExternalCommand(command string, args []string) (string, error) {
+func handleExternalCommand(command string, args []string) (string, string, error) {
 	cmd := exec.Command(command, args...)
 
 	var out bytes.Buffer
@@ -66,14 +66,10 @@ func handleExternalCommand(command string, args []string) (string, error) {
 
 	err := cmd.Run()
 	if err != nil {
-		ret := fmt.Sprintf("%s: command not found\n", command)
-		if out.String() != "" {
-			ret = fmt.Sprintf("%s", out.String())
-		}
-		return ret, errors.New(errOut.String())
+		return fmt.Sprintf("%s: command not found\n", command), out.String(), errors.New(errOut.String())
 	}
 
-	return out.String(), nil
+	return out.String(), out.String(), nil
 }
 
 func handlePwdCommand() (string, error) {
