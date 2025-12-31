@@ -134,7 +134,7 @@ func processDoubleQuotes(content string) string {
 func extractRedirection(args []string) (cmdArgs []string, redirectOp string, outputFile string) {
 	for i, arg := range args {
 		// Check for redirection operators
-		if arg == ">" || arg == "1>" || arg == ">>" || arg == "2>" {
+		if arg == ">" || arg == "1>" || arg == ">>" || arg == "1>>" || arg == "2>" {
 			redirectOp = arg
 
 			// Extract command arguments (everything before the operator)
@@ -180,7 +180,9 @@ func handleOutput(result CommandResult, redirectOp, filename string) {
 
 	// Handle Redirection
 	flags := os.O_WRONLY | os.O_CREATE | os.O_APPEND
-	// if redirectOp == ">>" { flags = os.O_WRONLY | os.O_CREATE | os.O_APPEND }
+	if redirectOp == ">>" || redirectOp == "1>>" {
+		flags = os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	}
 
 	file, err := os.OpenFile(filename, flags, 0644)
 	if err != nil {
