@@ -62,7 +62,6 @@ func handleExternalCommand(command string, args []string) (string, string, error
 	cmd.Stdout = &out
 	var errOut bytes.Buffer
 	cmd.Stderr = &errOut
-	//cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
 	if err != nil {
