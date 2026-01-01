@@ -20,6 +20,22 @@ type CommandResult struct {
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
 var _ = fmt.Print
 
+// 1. Define a struct for your listener
+type MyListener struct{}
+
+// 2. Implement the OnChange method required by the Listener interface
+func (l *MyListener) OnChange(line []rune, pos int, key rune) (newLine []rune, newPos int, ok bool) {
+	// 9 is the ASCII code for Tab
+	if key == 9 {
+		currentLine := string(line)
+		// Logic to detect if the user pressed tab on a non-command
+		if !strings.HasPrefix("echo", currentLine) && !strings.HasPrefix("exit", currentLine) {
+			fmt.Print("\a") // Play terminal bell
+		}
+	}
+	return nil, 0, false
+}
+
 func main() {
 	var completer = readline.NewPrefixCompleter(
 		readline.PcItem("echo"),
@@ -29,6 +45,7 @@ func main() {
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:       "$ ",
 		AutoComplete: completer,
+		Listener:     &MyListener{},
 	})
 	if err != nil {
 		panic(err)
