@@ -1,11 +1,14 @@
 package main
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/chzyer/readline"
 )
 
 type CommandResult struct {
@@ -18,12 +21,37 @@ type CommandResult struct {
 var _ = fmt.Print
 
 func main() {
+	var completer = readline.NewPrefixCompleter(
+		readline.PcItem("echo"),
+		readline.PcItem("exit"),
+	)
+
+	l, err := readline.NewEx(&readline.Config{
+		Prompt:       "$ ",
+		AutoComplete: completer,
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer l.Close()
+
 	for {
 		fmt.Print("$ ")
 
-		input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		//input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		//if err != nil {
+		//	continue
+		//}
+		input, err := l.Readline()
 		if err != nil {
-			continue
+			if errors.Is(err, readline.ErrInterrupt) {
+				// User pressed Ctrl+C
+				continue
+			} else if errors.Is(err, io.EOF) {
+				// User pressed Ctrl+D
+				break
+			}
+			break
 		}
 
 		input = strings.TrimSpace(input)
