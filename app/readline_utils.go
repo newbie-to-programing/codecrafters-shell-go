@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/chzyer/readline"
 )
 
 type UnifiedCompleter struct {
-	builtins  []string
-	tabCount  int
-	lastInput string
+	builtins []string
 	// We need the instance to trigger a redraw
 	ReadLine *readline.Instance
 }
@@ -32,23 +29,14 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 		return nil, 0
 	}
 
-	if typedSoFar == u.lastInput {
-		u.tabCount++
-	} else {
-		u.tabCount = 1
-		u.lastInput = typedSoFar
-	}
-
-	var suggestions [][]rune
 	seen := make(map[string]bool) // To prevent duplicates (e.g., if 'echo' is also in /bin)
 	fullMatches := make([]string, 0)
 
 	// 1. Check Builtin Commands (echo, exit)
 	for _, cmd := range u.builtins {
-		if strings.HasPrefix(cmd, typedSoFar) {
-			suffix := cmd[len(typedSoFar):]
-			suggestions = append(suggestions, []rune(suffix+" "))
+		if strings.HasPrefix(cmd, typedSoFar) && !seen[cmd] {
 			seen[cmd] = true
+			fullMatches = append(fullMatches, cmd)
 		}
 	}
 
@@ -66,35 +54,46 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 			name := file.Name()
 			// Only suggest if it matches prefix AND we haven't suggested it as a builtin
 			if strings.HasPrefix(name, typedSoFar) && !seen[name] {
-				suffix := name[len(typedSoFar):]
-				suggestions = append(suggestions, []rune(suffix+" "))
 				seen[name] = true
 				fullMatches = append(fullMatches, name)
 			}
 		}
 	}
 
-	// multiple matches
-	if len(fullMatches) > 1 {
-		if u.tabCount == 2 {
-			sort.Strings(fullMatches)
-			fmt.Println()
-			fmt.Println(strings.Join(fullMatches, "  "))
-			// 3. THE KEY STEP: Trigger a redraw of the prompt
-			if u.ReadLine != nil {
-				u.ReadLine.Refresh()
-			}
-
-			// Return nil so it doesn't try to "complete" a partial word inline
-			return nil, 0
-		}
-
-		fmt.Print("\a")
+	if len(fullMatches) == 0 {
 		return nil, 0
 	}
 
-	u.lastInput = typedSoFar
-	return suggestions, len(typedSoFar)
+	if len(fullMatches) == 1 {
+		return [][]rune{[]rune(fullMatches[0][len(typedSoFar):] + " ")}, len(typedSoFar)
+	}
+
+	// multiple matches
+	if len(fullMatches) > 1 {
+		lcp := findLCP(fullMatches)
+		return [][]rune{[]rune(lcp[len(typedSoFar):])}, len(typedSoFar)
+	}
+
+	return nil, 0
+}
+
+func findLCP(strs []string) string {
+	if len(strs) == 0 {
+		return ""
+	}
+
+	prefix := strs[0]
+
+	for i := 1; i < len(strs); i++ {
+		for !strings.HasPrefix(strs[i], prefix) {
+			prefix = prefix[:len(prefix)-1]
+			if prefix == "" {
+				return ""
+			}
+		}
+	}
+
+	return prefix
 }
 
 type MyListener struct{}
