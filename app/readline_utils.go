@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
+	"sort"
 	"strings"
 )
 
@@ -67,7 +67,8 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 	}
 
 	if u.tabCount == 2 && len(fullMatches) > 0 {
-		slices.Sort(fullMatches)
+		sort.Strings(fullMatches)
+		fmt.Println(fullMatches)
 		fmt.Println(strings.Join(fullMatches, "  "))
 		u.tabCount = 0
 		u.lastInput = ""
