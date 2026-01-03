@@ -82,6 +82,9 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 			u.ReadLine.Refresh()
 		}
 
+		u.tabCount = 0
+		u.lastInput = ""
+
 		// Return nil so it doesn't try to "complete" a partial word inline
 		return nil, 0
 	}
