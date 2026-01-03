@@ -74,20 +74,21 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 		}
 	}
 
-	if u.tabCount == 2 && len(fullMatches) > 1 {
-		sort.Strings(fullMatches)
-		fmt.Println()
-		fmt.Println(strings.Join(fullMatches, "  "))
-		// 3. THE KEY STEP: Trigger a redraw of the prompt
-		if u.ReadLine != nil {
-			u.ReadLine.Refresh()
+	// multiple matches
+	if len(fullMatches) > 1 {
+		if u.tabCount == 2 {
+			sort.Strings(fullMatches)
+			fmt.Println()
+			fmt.Println(strings.Join(fullMatches, "  "))
+			// 3. THE KEY STEP: Trigger a redraw of the prompt
+			if u.ReadLine != nil {
+				u.ReadLine.Refresh()
+			}
+
+			// Return nil so it doesn't try to "complete" a partial word inline
+			return nil, 0
 		}
 
-		// Return nil so it doesn't try to "complete" a partial word inline
-		return nil, 0
-	}
-
-	if u.tabCount < 2 && len(fullMatches) > 1 {
 		fmt.Print("\a")
 		return nil, 0
 	}
