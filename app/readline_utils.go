@@ -6,16 +6,24 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/chzyer/readline"
 )
 
 type UnifiedCompleter struct {
 	builtins  []string
 	tabCount  int
 	lastInput string
+	// We need the instance to trigger a redraw
+	ReadLine *readline.Instance
 }
 
 func NewUnifiedCompleter(builtins []string) *UnifiedCompleter {
 	return &UnifiedCompleter{builtins: builtins}
+}
+
+func (u *UnifiedCompleter) SetInstance(rl *readline.Instance) {
+	u.ReadLine = rl
 }
 
 func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
@@ -69,8 +77,13 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 	if u.tabCount == 2 && len(fullMatches) > 0 {
 		sort.Strings(fullMatches)
 		fmt.Println(strings.Join(fullMatches, "  "))
-		u.tabCount = 0
-		u.lastInput = ""
+		// 3. THE KEY STEP: Trigger a redraw of the prompt
+		if u.ReadLine != nil {
+			u.ReadLine.Refresh()
+		}
+
+		// Return nil so it doesn't try to "complete" a partial word inline
+		return nil, 0
 	}
 
 	sort.Slice(suggestions, func(i, j int) bool {

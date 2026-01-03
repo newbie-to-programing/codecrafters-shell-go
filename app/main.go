@@ -27,6 +27,7 @@ func main() {
 		AutoComplete: completer,
 		Listener:     &MyListener{},
 	})
+	completer.SetInstance(l)
 	if err != nil {
 		panic(err)
 	}
