@@ -8,7 +8,9 @@ import (
 )
 
 type UnifiedCompleter struct {
-	builtins []string
+	builtins  []string
+	tabCount  int
+	lastInput string
 }
 
 func NewUnifiedCompleter(builtins []string) *UnifiedCompleter {
@@ -21,8 +23,16 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 		return nil, 0
 	}
 
+	if typedSoFar == u.lastInput {
+		u.tabCount++
+	} else {
+		u.tabCount = 1
+		u.lastInput = typedSoFar
+	}
+
 	var suggestions [][]rune
 	seen := make(map[string]bool) // To prevent duplicates (e.g., if 'echo' is also in /bin)
+	fullMatches := make([]string, 0)
 
 	// 1. Check Builtin Commands (echo, exit)
 	for _, cmd := range u.builtins {
@@ -50,17 +60,20 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 				suffix := name[len(typedSoFar):]
 				suggestions = append(suggestions, []rune(suffix+" "))
 				seen[name] = true
+				fullMatches = append(fullMatches, name)
 			}
 		}
+	}
+
+	if u.tabCount == 2 && len(fullMatches) > 0 {
+		fmt.Println(strings.Join(fullMatches, "  "))
 	}
 
 	return suggestions, len(typedSoFar)
 }
 
-// 1. Define a struct for your listener
 type MyListener struct{}
 
-// 2. Implement the OnChange method required by the Listener interface
 func (l *MyListener) OnChange(line []rune, pos int, key rune) (newLine []rune, newPos int, ok bool) {
 	// 9 is the ASCII code for Tab
 	if key == 9 {
