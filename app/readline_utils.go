@@ -39,6 +39,8 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 		u.lastInput = typedSoFar
 	}
 
+	u.lastInput = typedSoFar
+
 	var suggestions [][]rune
 	seen := make(map[string]bool) // To prevent duplicates (e.g., if 'echo' is also in /bin)
 	fullMatches := make([]string, 0)
@@ -76,26 +78,19 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 
 	if u.tabCount == 2 && len(fullMatches) > 0 {
 		sort.Strings(fullMatches)
+		fmt.Println()
 		fmt.Println(strings.Join(fullMatches, "  "))
 		// 3. THE KEY STEP: Trigger a redraw of the prompt
 		if u.ReadLine != nil {
 			u.ReadLine.Refresh()
 		}
 
-		u.tabCount = 0
-		u.lastInput = ""
-
 		// Return nil so it doesn't try to "complete" a partial word inline
 		return nil, 0
+	} else {
+		fmt.Print("\a")
+		return nil, 0
 	}
-
-	sort.Slice(suggestions, func(i, j int) bool {
-		// Convert to string for an easy lexicographical comparison
-		// Or compare rune by rune if you want to avoid allocations
-		return string(suggestions[i]) < string(suggestions[j])
-	})
-
-	return suggestions, len(typedSoFar)
 }
 
 type MyListener struct{}
