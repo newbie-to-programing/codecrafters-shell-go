@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/chzyer/readline"
 )
 
 type UnifiedCompleter struct {
-	builtins []string
+	builtins  []string
+	lastInput string
 	// We need the instance to trigger a redraw
 	ReadLine *readline.Instance
 }
@@ -68,10 +70,21 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 		return [][]rune{[]rune(fullMatches[0][len(typedSoFar):] + " ")}, len(typedSoFar)
 	}
 
+	sort.Strings(fullMatches)
+	lcp := findLCP(fullMatches)
+
 	// multiple matches
-	if len(fullMatches) > 1 {
-		lcp := findLCP(fullMatches)
+	if len(lcp) > len(typedSoFar) {
 		return [][]rune{[]rune(lcp[len(typedSoFar):])}, len(typedSoFar)
+	}
+
+	if typedSoFar == u.lastInput {
+		// SECOND TAB: Print list and redraw
+		fmt.Printf("\n%s\n", strings.Join(fullMatches, "  "))
+		u.ReadLine.Refresh()
+	} else {
+		fmt.Print("\a") // Play terminal bell
+		u.lastInput = typedSoFar
 	}
 
 	return nil, 0
