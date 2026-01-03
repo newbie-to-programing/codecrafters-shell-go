@@ -73,6 +73,12 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 		u.lastInput = ""
 	}
 
+	sort.Slice(suggestions, func(i, j int) bool {
+		// Convert to string for an easy lexicographical comparison
+		// Or compare rune by rune if you want to avoid allocations
+		return string(suggestions[i]) < string(suggestions[j])
+	})
+
 	return suggestions, len(typedSoFar)
 }
 
