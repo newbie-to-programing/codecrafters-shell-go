@@ -62,21 +62,36 @@ func main() {
 			continue
 		}
 
-		cmdArgs, redirectOp, outFile := extractRedirection(args)
+		var command1 string
+		var otherArgs1 []string
+		var command2 string
+		var otherArgs2 []string
+		var cmdArgs1 []string
+		var cmdArgs2 []string
+		var redirectOp string
+		var outFile string
+		cmdArgs1, redirectOp, outFile = extractRedirection(args)
+		if redirectOp == "" {
+			cmdArgs1, cmdArgs2 = extractPipeline(args)
+		}
+
+		command1 = cmdArgs1[0]
+		otherArgs1 = cmdArgs1[1:]
+		if len(cmdArgs2) > 0 {
+			command2 = cmdArgs2[0]
+			otherArgs2 = cmdArgs2[1:]
+		}
 
 		var res CommandResult
-		command := cmdArgs[0]
-		otherArgs := cmdArgs[1:]
-
-		switch command {
+		switch command1 {
 		case ExitCommand:
 			os.Exit(0)
 		case EchoCommand:
-			ret := handleEchoCommand(otherArgs)
+			ret := handleEchoCommand(otherArgs1)
 			res.Output = ret
 			res.Stdout = ret
 		case TypeCommand:
-			ret := handleTypeCommand(otherArgs)
+			ret := handleTypeCommand(otherArgs1)
 			res.Output = ret
 			res.Stdout = ret
 		case PwdCommand:
@@ -84,11 +99,11 @@ func main() {
 			res.Output = ret
 			res.Stdout = ret
 		case CdCommand:
-			ret := handleCdCommand(otherArgs)
+			ret := handleCdCommand(otherArgs1)
 			res.Output = ret
 			res.Stdout = ret
 		default:
-			res.Output, res.Stdout, res.Stderr = handleExternalCommand(command, otherArgs)
+			res.Output, res.Stdout, res.Stderr = handleExternalCommand(command1, otherArgs1, command2, otherArgs2)
 		}
 
 		handleOutput(res, redirectOp, outFile)

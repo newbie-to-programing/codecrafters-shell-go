@@ -88,3 +88,23 @@ func extractRedirection(args []string) (cmdArgs []string, redirectOp string, out
 	// If no operator was found, all args are command args
 	return args, "", ""
 }
+
+func extractPipeline(args []string) (cmdArgs1 []string, cmdArgs2 []string) {
+	for i, arg := range args {
+		// Check for redirection operators
+		if arg == "|" {
+			// Extract command arguments (everything before the operator)
+			cmdArgs1 = args[:i]
+
+			// Safely extract filename (the argument immediately following the operator)
+			if i+1 < len(args) {
+				cmdArgs2 = args[i+1:]
+			}
+
+			return cmdArgs1, cmdArgs2
+		}
+	}
+
+	// If no operator was found, all args are command args
+	return args, nil
+}
