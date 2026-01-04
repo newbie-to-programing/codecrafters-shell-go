@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -56,57 +55,51 @@ func findInPath(name string) (string, bool) {
 	return "", false
 }
 
-func handleExternalCommand(command1 string, args1 []string, command2 string, args2 []string) (string, string, error) {
-	if command2 == "" {
-		cmd := exec.Command(command1, args1...)
+func handleExternalCommand(commands []Command) (string, string, error) {
+	if len(commands) == 1 {
+		c := commands[0]
+		cmd := exec.Command(c.Path, c.Args...)
 
-		var out bytes.Buffer
-		cmd.Stdout = &out
-		var errOut bytes.Buffer
-		cmd.Stderr = &errOut
+		var outBuf bytes.Buffer
+		var errBuf bytes.Buffer
+		cmd.Stdout = &outBuf
+		cmd.Stderr = &errBuf
 
 		err := cmd.Run()
 		if err != nil {
-			return fmt.Sprintf("%s: command not found\n", command1), out.String(), errors.New(errOut.String())
+			return fmt.Sprintf("%s: command not found\n", c.Path), outBuf.String(), errors.New(errBuf.String())
 		}
 
-		return out.String(), out.String(), nil
-	} else {
-		cmd1 := exec.Command(command1, args1...)
-		cmd2 := exec.Command(command2, args2...)
-
-		stdout, err := cmd1.StdoutPipe()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		cmd2.Stdin = stdout
-		cmd2.Stdout = os.Stdout
-
-		// 3. Start the commands
-		// Start the first command
-		if err = cmd1.Start(); err != nil {
-			log.Fatal(err)
-		}
-
-		// Start the second command (which will read from the pipe)
-		if err = cmd2.Start(); err != nil {
-			log.Fatal(err)
-		}
-
-		// 4. Wait for the commands to complete
-		// Wait for the first command to finish and close the stdout pipe
-		if err = cmd1.Wait(); err != nil {
-			log.Fatal(err)
-		}
-
-		// Wait for the second command to finish
-		if err = cmd2.Wait(); err != nil {
-			log.Fatal(err)
-		}
-
-		return "", "", nil
+		return outBuf.String(), outBuf.String(), nil
 	}
+
+	cmd1 := exec.Command(commands[0].Path, commands[0].Args...)
+	cmd2 := exec.Command(commands[1].Path, commands[1].Args...)
+
+	stdout, err := cmd1.StdoutPipe()
+	if err != nil {
+		return "", "", err
+	}
+
+	cmd2.Stdin = stdout
+	cmd2.Stdout = os.Stdout
+	cmd2.Stderr = os.Stderr
+
+	// 3. Start the commands
+	// Start the first command
+	if err = cmd1.Start(); err != nil {
+		return "", "", err
+	}
+
+	// Start the second command (which will read from the pipe)
+	if err = cmd2.Start(); err != nil {
+		return "", "", err
+	}
+
+	cmd1.Wait()
+	cmd2.Wait()
+
+	return "", "", nil
 }
 
 func handlePwdCommand() string {

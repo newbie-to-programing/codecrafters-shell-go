@@ -10,36 +10,22 @@ import (
 	"github.com/chzyer/readline"
 )
 
-type CommandResult struct {
-	Output string
-	Stdout string
-	Stderr error
-}
-
-// Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
-var _ = fmt.Print
-
 func main() {
 	completer := NewUnifiedCompleter([]string{"echo", "exit"})
-
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:       "$ ",
 		AutoComplete: completer,
 		Listener:     &MyListener{},
 	})
-	completer.SetInstance(l)
 	if err != nil {
 		panic(err)
 	}
+	completer.SetInstance(l)
 	defer l.Close()
 
 	for {
 		fmt.Print("$ ")
 
-		//input, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		//if err != nil {
-		//	continue
-		//}
 		input, err := l.Readline()
 		if err != nil {
 			if errors.Is(err, readline.ErrInterrupt) {
@@ -57,41 +43,25 @@ func main() {
 			continue
 		}
 
-		args := parseArguments(input)
-		if len(args) == 0 {
+		commands := ParseInput(input)
+		if len(commands) <= 0 {
 			continue
 		}
 
-		var command1 string
-		var otherArgs1 []string
-		var command2 string
-		var otherArgs2 []string
-		var cmdArgs1 []string
-		var cmdArgs2 []string
-		var redirectOp string
-		var outFile string
-		cmdArgs1, redirectOp, outFile = extractRedirection(args)
-		if redirectOp == "" {
-			cmdArgs1, cmdArgs2 = extractPipeline(args)
-		}
-
-		command1 = cmdArgs1[0]
-		otherArgs1 = cmdArgs1[1:]
-		if len(cmdArgs2) > 0 {
-			command2 = cmdArgs2[0]
-			otherArgs2 = cmdArgs2[1:]
-		}
+		c := commands[0]
+		command := c.Path
+		otherArgs := c.Args
 
 		var res CommandResult
-		switch command1 {
+		switch command {
 		case ExitCommand:
 			os.Exit(0)
 		case EchoCommand:
-			ret := handleEchoCommand(otherArgs1)
+			ret := handleEchoCommand(otherArgs)
 			res.Output = ret
 			res.Stdout = ret
 		case TypeCommand:
-			ret := handleTypeCommand(otherArgs1)
+			ret := handleTypeCommand(otherArgs)
 			res.Output = ret
 			res.Stdout = ret
 		case PwdCommand:
@@ -99,14 +69,14 @@ func main() {
 			res.Output = ret
 			res.Stdout = ret
 		case CdCommand:
-			ret := handleCdCommand(otherArgs1)
+			ret := handleCdCommand(otherArgs)
 			res.Output = ret
 			res.Stdout = ret
 		default:
-			res.Output, res.Stdout, res.Stderr = handleExternalCommand(command1, otherArgs1, command2, otherArgs2)
+			res.Output, res.Stdout, res.Stderr = handleExternalCommand(commands)
 		}
 
-		handleOutput(res, redirectOp, outFile)
+		handleOutput(res, c.RedirectOp, c.OutputFile)
 	}
 }
 

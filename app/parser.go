@@ -5,6 +5,33 @@ import (
 	"strings"
 )
 
+func ParseInput(input string) []Command {
+	tokens := parseArguments(input)
+
+	// 1. Split into "stages" by the pipe operator
+	var stages [][]string
+	currentStage := []string{}
+	for _, t := range tokens {
+		if t == "|" {
+			stages = append(stages, currentStage)
+			currentStage = []string{}
+		} else {
+			currentStage = append(currentStage, t)
+		}
+	}
+	stages = append(stages, currentStage)
+
+	// 2. Convert each stage into a Command struct
+	var commands []Command
+	for _, s := range stages {
+		if len(s) == 0 {
+			continue
+		}
+		commands = append(commands, parseStage(s))
+	}
+	return commands
+}
+
 func parseArguments(input string) []string {
 	// The pattern identifies 4 types of "blobs" that form arguments:
 	// 1. Double quotes: "(content)"
@@ -65,6 +92,34 @@ func parseArguments(input string) []string {
 func processDoubleQuotes(content string) string {
 	re := regexp.MustCompile(`\\(["\\])`)
 	return re.ReplaceAllString(content, "$1")
+}
+
+func parseStage(tokens []string) Command {
+	cmd := Command{}
+	finalArgs := []string{}
+
+	for i := 0; i < len(tokens); i++ {
+		// Check if token is a redirect operator
+		if isRedirect(tokens[i]) {
+			cmd.RedirectOp = tokens[i]
+			if i+1 < len(tokens) {
+				cmd.OutputFile = tokens[i+1]
+				i++ // Skip the filename in the next iteration
+			}
+			continue
+		}
+		finalArgs = append(finalArgs, tokens[i])
+	}
+
+	if len(finalArgs) > 0 {
+		cmd.Path = finalArgs[0]
+		cmd.Args = finalArgs[1:]
+	}
+	return cmd
+}
+
+func isRedirect(s string) bool {
+	return s == ">" || s == "1>" || s == ">>" || s == "1>>" || s == "2>" || s == "2>>"
 }
 
 func extractRedirection(args []string) (cmdArgs []string, redirectOp string, outputFile string) {
