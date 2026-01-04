@@ -81,10 +81,7 @@ func handleExternalCommand(command1 string, args1 []string, command2 string, arg
 		}
 
 		cmd2.Stdin = stdout
-		var out bytes.Buffer
-		cmd2.Stdout = &out
-		var errOut bytes.Buffer
-		cmd2.Stderr = &errOut
+		cmd2.Stdout = os.Stdout
 
 		// 3. Start the commands
 		// Start the first command
@@ -108,7 +105,7 @@ func handleExternalCommand(command1 string, args1 []string, command2 string, arg
 			log.Fatal(err)
 		}
 
-		return out.String(), out.String(), nil
+		return "", "", nil
 	}
 }
 
