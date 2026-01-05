@@ -139,51 +139,20 @@ func findInPath(name string) (string, bool) {
 	return "", false
 }
 
-func handleExternalCommand(commands []Command) (string, string, error) {
-	if len(commands) == 1 {
-		c := commands[0]
-		cmd := exec.Command(c.Path, c.Args...)
+func handleExternalCommand(command Command) (string, string, error) {
+	cmd := exec.Command(command.Path, command.Args...)
 
-		var outBuf bytes.Buffer
-		var errBuf bytes.Buffer
-		cmd.Stdout = &outBuf
-		cmd.Stderr = &errBuf
+	var outBuf bytes.Buffer
+	var errBuf bytes.Buffer
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
 
-		err := cmd.Run()
-		if err != nil {
-			return fmt.Sprintf("%s: command not found\n", c.Path), outBuf.String(), errors.New(errBuf.String())
-		}
-
-		return outBuf.String(), outBuf.String(), nil
-	}
-
-	cmd1 := exec.Command(commands[0].Path, commands[0].Args...)
-	cmd2 := exec.Command(commands[1].Path, commands[1].Args...)
-
-	stdout, err := cmd1.StdoutPipe()
+	err := cmd.Run()
 	if err != nil {
-		return "", "", err
+		return fmt.Sprintf("%s: command not found\n", command.Path), outBuf.String(), errors.New(errBuf.String())
 	}
 
-	cmd2.Stdin = stdout
-	cmd2.Stdout = os.Stdout
-	cmd2.Stderr = os.Stderr
-
-	// 3. Start the commands
-	// Start the first command
-	if err = cmd1.Start(); err != nil {
-		return "", "", err
-	}
-
-	// Start the second command (which will read from the pipe)
-	if err = cmd2.Start(); err != nil {
-		return "", "", err
-	}
-
-	cmd1.Wait()
-	cmd2.Wait()
-
-	return "", "", nil
+	return outBuf.String(), outBuf.String(), nil
 }
 
 func handlePwdCommand() string {

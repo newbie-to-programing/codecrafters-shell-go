@@ -53,37 +53,35 @@ func main() {
 			continue
 		}
 
-		executePipeline(commands)
+		c := commands[0]
+		command := c.Path
+		otherArgs := c.Args
 
-		//c := commands[0]
-		//command := c.Path
-		//otherArgs := c.Args
-		//
-		//var res CommandResult
-		//switch command {
-		//case ExitCommand:
-		//	os.Exit(0)
-		//case EchoCommand:
-		//	ret := handleEchoCommand(otherArgs)
-		//	res.Output = ret
-		//	res.Stdout = ret
-		//case TypeCommand:
-		//	ret := handleTypeCommand(otherArgs)
-		//	res.Output = ret
-		//	res.Stdout = ret
-		//case PwdCommand:
-		//	ret := handlePwdCommand()
-		//	res.Output = ret
-		//	res.Stdout = ret
-		//case CdCommand:
-		//	ret := handleCdCommand(otherArgs)
-		//	res.Output = ret
-		//	res.Stdout = ret
-		//default:
-		//	res.Output, res.Stdout, res.Stderr = handleExternalCommand(commands)
-		//}
-		//
-		//handleOutput(res, c.RedirectOp, c.OutputFile)
+		var res CommandResult
+		switch command {
+		case ExitCommand:
+			os.Exit(0)
+		case EchoCommand:
+			ret := handleEchoCommand(otherArgs)
+			res.Output = ret
+			res.Stdout = ret
+		case TypeCommand:
+			ret := handleTypeCommand(otherArgs)
+			res.Output = ret
+			res.Stdout = ret
+		case PwdCommand:
+			ret := handlePwdCommand()
+			res.Output = ret
+			res.Stdout = ret
+		case CdCommand:
+			ret := handleCdCommand(otherArgs)
+			res.Output = ret
+			res.Stdout = ret
+		default:
+			res.Output, res.Stdout, res.Stderr = handleExternalCommand(c)
+		}
+
+		handleOutput(res, c.RedirectOp, c.OutputFile)
 	}
 }
 
