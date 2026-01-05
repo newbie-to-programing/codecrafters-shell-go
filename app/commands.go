@@ -65,17 +65,11 @@ func executePipeline(commands []Command) {
 			cmd.Stderr = currentStderr
 
 			if isLast {
-				err := cmd.Run()
-				if err != nil {
-					fmt.Fprint(cmd.Stdout, fmt.Sprintf("%s: command not found\n", c.Path))
-				}
+				cmd.Run()
 			} else {
 				cmd.Start()
 				go func(cmd *exec.Cmd, w io.WriteCloser) {
-					err := cmd.Wait()
-					if err != nil {
-						fmt.Fprint(cmd.Stdout, fmt.Sprintf("%s: command not found\n", c.Path))
-					}
+					cmd.Wait()
 					w.Close()
 				}(cmd, pipeWriter)
 			}
