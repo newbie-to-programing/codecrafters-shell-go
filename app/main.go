@@ -48,6 +48,11 @@ func main() {
 			continue
 		}
 
+		if len(commands) > 1 {
+			executePipeline(commands)
+			return
+		}
+
 		c := commands[0]
 		command := c.Path
 		otherArgs := c.Args

@@ -4,11 +4,93 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 )
+
+func executePipeline(commands []Command) {
+	var lastStdout io.Reader = os.Stdin
+
+	for i, c := range commands {
+		isLast := i == len(commands)-1
+
+		var currentStdout io.Writer
+		var currentStderr io.Writer = os.Stderr
+		var pipeWriter io.WriteCloser
+
+		if isLast {
+			if c.RedirectOp != "" {
+				flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+				if strings.Contains(c.RedirectOp, ">>") {
+					flags = os.O_WRONLY | os.O_CREATE | os.O_APPEND
+				}
+
+				file, err := os.OpenFile(c.OutputFile, flags, 0644)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "shell: %v\n", err)
+					return
+				}
+				defer file.Close()
+
+				if strings.HasPrefix(c.RedirectOp, "2") {
+					currentStderr = file
+					currentStdout = os.Stdout
+				} else {
+					currentStdout = file
+					// Stderr remains os.Stderr
+				}
+			}
+		} else {
+			r, w, _ := os.Pipe()
+			currentStdout = w
+			pipeWriter = w
+			lastStdout = r
+		}
+
+		if isBuiltin(c.Path) {
+			output := handleBuiltinCommand(c.Path, c.Args)
+			fmt.Fprint(currentStdout, output)
+			if pipeWriter != nil {
+				pipeWriter.Close()
+			}
+		} else {
+			cmd := exec.Command(c.Path, c.Args...)
+			cmd.Stdin = lastStdout
+			cmd.Stdout = currentStdout
+			cmd.Stderr = currentStderr
+
+			if isLast {
+				cmd.Run()
+			} else {
+				cmd.Start()
+				go func(cmd *exec.Cmd, w io.WriteCloser) {
+					cmd.Wait()
+					w.Close()
+				}(cmd, pipeWriter)
+			}
+		}
+	}
+}
+
+func handleBuiltinCommand(command string, args []string) string {
+	switch command {
+	case ExitCommand:
+		os.Exit(0)
+	case EchoCommand:
+		return handleEchoCommand(args)
+	case TypeCommand:
+		return handleTypeCommand(args)
+	case PwdCommand:
+		return handlePwdCommand()
+	case CdCommand:
+		return handleCdCommand(args)
+	}
+
+	return ""
+}
 
 func handleEchoCommand(args []string) string {
 	return fmt.Sprintln(strings.Join(args, " "))
