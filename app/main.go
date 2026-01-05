@@ -50,7 +50,7 @@ func main() {
 
 		if len(commands) > 1 {
 			executePipeline(commands)
-			return
+			continue
 		}
 
 		c := commands[0]
