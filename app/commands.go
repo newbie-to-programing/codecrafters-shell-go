@@ -42,6 +42,8 @@ func executePipeline(commands []Command) {
 					currentStdout = file
 					// Stderr remains os.Stderr
 				}
+			} else {
+				currentStdout = os.Stdout
 			}
 		} else {
 			r, w, _ := os.Pipe()
