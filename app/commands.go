@@ -19,7 +19,8 @@ func executePipeline(commands []Command) {
 
 		var currentStdout io.Writer
 		var currentStderr io.Writer = os.Stderr
-		var pipeWriter io.WriteCloser
+		var pipeReadEnd io.ReadCloser
+		var pipeWriteEnd io.WriteCloser
 
 		if isLast {
 			if c.RedirectOp != "" {
@@ -48,15 +49,15 @@ func executePipeline(commands []Command) {
 		} else {
 			r, w, _ := os.Pipe()
 			currentStdout = w
-			pipeWriter = w
-			lastStdout = r
+			pipeWriteEnd = w
+			pipeReadEnd = r
 		}
 
 		if isBuiltin(c.Path) {
 			output := handleBuiltinCommand(c.Path, c.Args)
 			fmt.Fprint(currentStdout, output)
-			if pipeWriter != nil {
-				pipeWriter.Close()
+			if pipeWriteEnd != nil {
+				pipeWriteEnd.Close()
 			}
 		} else {
 			cmd := exec.Command(c.Path, c.Args...)
@@ -71,9 +72,17 @@ func executePipeline(commands []Command) {
 				go func(cmd *exec.Cmd, w io.WriteCloser) {
 					cmd.Wait()
 					w.Close()
-				}(cmd, pipeWriter)
+				}(cmd, pipeWriteEnd)
 			}
 		}
+
+		if i > 0 {
+			if closer, ok := lastStdout.(io.Closer); ok {
+				closer.Close()
+			}
+		}
+
+		lastStdout = pipeReadEnd
 	}
 }
 
