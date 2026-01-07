@@ -192,3 +192,17 @@ func handleCdCommand(args []string) string {
 
 	return ""
 }
+
+func addToHistoryCommands(historyCommands []string, commands []Command) []string {
+	for _, command := range commands {
+		historyCommands = append(historyCommands, command.Path)
+	}
+
+	return historyCommands
+}
+
+func handleHistoryCommand(historyCommands []string) {
+	for i, historyCommand := range historyCommands {
+		fmt.Printf("%v  %v\n", i, historyCommand)
+	}
+}

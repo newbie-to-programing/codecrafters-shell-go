@@ -23,6 +23,8 @@ func main() {
 	completer.SetInstance(l)
 	defer l.Close()
 
+	historyCommands := make([]string, 0)
+
 	for {
 		fmt.Print("$ ")
 
@@ -47,6 +49,8 @@ func main() {
 		if len(commands) <= 0 {
 			continue
 		}
+
+		historyCommands = addToHistoryCommands(historyCommands, commands)
 
 		if len(commands) > 1 {
 			executePipeline(commands)
@@ -77,6 +81,8 @@ func main() {
 			ret := handleCdCommand(otherArgs)
 			res.Output = ret
 			res.Stdout = ret
+		case HistoryCommand:
+			handleHistoryCommand(historyCommands)
 		default:
 			res.Output, res.Stdout, res.Stderr = handleExternalCommand(c)
 		}
@@ -88,7 +94,9 @@ func main() {
 func handleOutput(result CommandResult, redirectOp, filename string) {
 	// If no redirection, print to standard output
 	if redirectOp == "" {
-		fmt.Print(result.Output)
+		if result.Output != "" {
+			fmt.Print(result.Output)
+		}
 		return
 	}
 
