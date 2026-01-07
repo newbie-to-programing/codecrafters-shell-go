@@ -23,7 +23,7 @@ func main() {
 	completer.SetInstance(l)
 	defer l.Close()
 
-	historyCommands := make([]string, 0)
+	historyCommands := make([]Command, 0)
 
 	for {
 		fmt.Print("$ ")
