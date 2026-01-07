@@ -127,7 +127,7 @@ func handleTypeCommand(args []string) string {
 
 func isBuiltin(name string) bool {
 	switch name {
-	case ExitCommand, EchoCommand, TypeCommand, PwdCommand, CdCommand:
+	case ExitCommand, EchoCommand, TypeCommand, PwdCommand, CdCommand, HistoryCommand:
 		return true
 	}
 	return false
