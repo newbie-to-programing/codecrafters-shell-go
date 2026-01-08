@@ -212,7 +212,7 @@ func handleHistoryCommand(args []string, historyCommands []Command) {
 	}
 
 	i := len(historyCommands) - int(limit)
-	for i < len(historyCommands)-1 {
+	for i < len(historyCommands) {
 		historyCommand := historyCommands[i]
 		fmt.Printf("%v  %v %v\n", i+1, historyCommand.Path, strings.Join(historyCommand.Args, " "))
 		i++
