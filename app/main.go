@@ -82,7 +82,7 @@ func main() {
 			res.Output = ret
 			res.Stdout = ret
 		case HistoryCommand:
-			handleHistoryCommand(historyCommands)
+			handleHistoryCommand(otherArgs, historyCommands)
 		default:
 			res.Output, res.Stdout, res.Stderr = handleExternalCommand(c)
 		}

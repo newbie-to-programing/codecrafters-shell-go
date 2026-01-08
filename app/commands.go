@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -201,8 +202,19 @@ func addToHistoryCommands(historyCommands []Command, commands []Command) []Comma
 	return historyCommands
 }
 
-func handleHistoryCommand(historyCommands []Command) {
-	for i, historyCommand := range historyCommands {
+func handleHistoryCommand(args []string, historyCommands []Command) {
+	limit := int64(len(historyCommands))
+	if len(args) > 0 {
+		limitInt, err := strconv.ParseInt(args[0], 10, 64)
+		if err == nil {
+			limit = limitInt
+		}
+	}
+
+	i := len(historyCommands) - 1
+	for limit > 0 {
+		historyCommand := historyCommands[i]
 		fmt.Printf("%v  %v %v\n", i+1, historyCommand.Path, strings.Join(historyCommand.Args, " "))
+		limit--
 	}
 }
