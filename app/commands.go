@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -194,27 +195,56 @@ func handleCdCommand(args []string) string {
 	return ""
 }
 
-func addToHistoryCommands(historyCommands []Command, commands []Command) []Command {
+func addToHistoryCommands(historyCommands []string, commands []Command) []string {
 	for _, command := range commands {
-		historyCommands = append(historyCommands, command)
+		historyCommands = append(historyCommands, formatHistoryCommand(command))
 	}
 
 	return historyCommands
 }
 
-func handleHistoryCommand(args []string, historyCommands []Command) {
-	limit := int64(len(historyCommands))
-	if len(args) > 0 {
-		limitInt, err := strconv.ParseInt(args[0], 10, 64)
-		if err == nil {
-			limit = limitInt
+func formatHistoryCommand(command Command) string {
+	return fmt.Sprintf("%v %v\n", command.Path, strings.Join(command.Args, " "))
+}
+
+func handleHistoryCommand(args []string, historyCommands []string) []string {
+	if len(args) > 2 {
+		return historyCommands
+	}
+
+	// example: history 2
+	if len(args) <= 1 {
+		limit := int64(len(historyCommands))
+		if len(args) > 0 {
+			limitInt, err := strconv.ParseInt(args[0], 10, 64)
+			if err == nil {
+				limit = limitInt
+			}
+		}
+
+		i := len(historyCommands) - int(limit)
+		for i < len(historyCommands) {
+			historyCommand := historyCommands[i]
+			fmt.Printf("%v  %v", i+1, historyCommand)
+			i++
+		}
+	} else {
+		filePath := args[1]
+		file, err := os.Open(filePath)
+		if err != nil {
+			return historyCommands
+		}
+
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if line != "" {
+				historyCommands = append(historyCommands, fmt.Sprintf("%v\n", line))
+			}
 		}
 	}
 
-	i := len(historyCommands) - int(limit)
-	for i < len(historyCommands) {
-		historyCommand := historyCommands[i]
-		fmt.Printf("%v  %v %v\n", i+1, historyCommand.Path, strings.Join(historyCommand.Args, " "))
-		i++
-	}
+	return historyCommands
 }

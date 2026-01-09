@@ -23,7 +23,7 @@ func main() {
 	completer.SetInstance(l)
 	defer l.Close()
 
-	historyCommands := make([]Command, 0)
+	historyCommands := make([]string, 0)
 
 	for {
 		fmt.Print("$ ")
@@ -82,7 +82,7 @@ func main() {
 			res.Output = ret
 			res.Stdout = ret
 		case HistoryCommand:
-			handleHistoryCommand(otherArgs, historyCommands)
+			historyCommands = handleHistoryCommand(otherArgs, historyCommands)
 		default:
 			res.Output, res.Stdout, res.Stderr = handleExternalCommand(c)
 		}
