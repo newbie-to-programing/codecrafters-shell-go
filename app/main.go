@@ -1,43 +1,29 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"os"
 	"strings"
+)
 
-	"github.com/chzyer/readline"
+var (
+	historyCommands = make([]string, 0)
 )
 
 func main() {
-	completer := NewUnifiedCompleter([]string{"echo", "exit"})
-	l, err := readline.NewEx(&readline.Config{
-		Prompt:       "$ ",
-		AutoComplete: completer,
-		Listener:     &MyListener{},
-	})
-	if err != nil {
-		panic(err)
-	}
-	completer.SetInstance(l)
+	l := InitializeReadline()
 	defer l.Close()
-
-	historyCommands := make([]string, 0)
 
 	for {
 		fmt.Print("$ ")
 
 		input, err := l.Readline()
 		if err != nil {
-			if errors.Is(err, readline.ErrInterrupt) {
-				// User pressed Ctrl+C
-				continue
-			} else if errors.Is(err, io.EOF) {
-				// User pressed Ctrl+D
+			action := HandleReadlineError(err)
+			if action == StopLoop {
 				break
 			}
-			break
+			continue
 		}
 
 		input = strings.TrimSpace(input)
@@ -50,10 +36,10 @@ func main() {
 			continue
 		}
 
-		historyCommands = addToHistoryCommands(historyCommands, commands)
+		historyCommands = AddToHistoryCommands(historyCommands, commands)
 
 		if len(commands) > 1 {
-			executePipeline(commands)
+			ExecutePipeline(commands)
 			continue
 		}
 
@@ -66,25 +52,25 @@ func main() {
 		case ExitCommand:
 			os.Exit(0)
 		case EchoCommand:
-			ret := handleEchoCommand(otherArgs)
+			ret := HandleEchoCommand(otherArgs)
 			res.Output = ret
 			res.Stdout = ret
 		case TypeCommand:
-			ret := handleTypeCommand(otherArgs)
+			ret := HandleTypeCommand(otherArgs)
 			res.Output = ret
 			res.Stdout = ret
 		case PwdCommand:
-			ret := handlePwdCommand()
+			ret := HandlePwdCommand()
 			res.Output = ret
 			res.Stdout = ret
 		case CdCommand:
-			ret := handleCdCommand(otherArgs)
+			ret := HandleCdCommand(otherArgs)
 			res.Output = ret
 			res.Stdout = ret
 		case HistoryCommand:
-			historyCommands = handleHistoryCommand(otherArgs, historyCommands)
+			historyCommands = HandleHistoryCommand(otherArgs, historyCommands)
 		default:
-			res.Output, res.Stdout, res.Stderr = handleExternalCommand(c)
+			res.Output, res.Stdout, res.Stderr = HandleExternalCommand(c)
 		}
 
 		handleOutput(res, c.RedirectOp, c.OutputFile)
@@ -119,7 +105,7 @@ func handleOutput(result CommandResult, redirectOp, filename string) {
 	}
 
 	// Handle Redirection
-	flags := os.O_WRONLY | os.O_CREATE | os.O_APPEND
+	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 	if redirectOp == ">>" || redirectOp == "1>>" || redirectOp == "2>>" {
 		flags = os.O_WRONLY | os.O_CREATE | os.O_APPEND
 	}

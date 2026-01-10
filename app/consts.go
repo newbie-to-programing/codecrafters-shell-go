@@ -8,3 +8,10 @@ const (
 	CdCommand      = "cd"
 	HistoryCommand = "history"
 )
+
+type LoopAction int
+
+const (
+	ContinueLoop LoopAction = iota
+	StopLoop
+)

@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func executePipeline(commands []Command) {
+func ExecutePipeline(commands []Command) {
 	var lastStdout io.Reader = os.Stdin
 
 	for i, c := range commands {
@@ -93,23 +93,23 @@ func handleBuiltinCommand(command string, args []string) string {
 	case ExitCommand:
 		os.Exit(0)
 	case EchoCommand:
-		return handleEchoCommand(args)
+		return HandleEchoCommand(args)
 	case TypeCommand:
-		return handleTypeCommand(args)
+		return HandleTypeCommand(args)
 	case PwdCommand:
-		return handlePwdCommand()
+		return HandlePwdCommand()
 	case CdCommand:
-		return handleCdCommand(args)
+		return HandleCdCommand(args)
 	}
 
 	return ""
 }
 
-func handleEchoCommand(args []string) string {
+func HandleEchoCommand(args []string) string {
 	return fmt.Sprintln(strings.Join(args, " "))
 }
 
-func handleTypeCommand(args []string) string {
+func HandleTypeCommand(args []string) string {
 	if len(args) == 0 {
 		return ""
 	}
@@ -150,7 +150,7 @@ func findInPath(name string) (string, bool) {
 	return "", false
 }
 
-func handleExternalCommand(command Command) (string, string, error) {
+func HandleExternalCommand(command Command) (string, string, error) {
 	cmd := exec.Command(command.Path, command.Args...)
 
 	var outBuf bytes.Buffer
@@ -166,7 +166,7 @@ func handleExternalCommand(command Command) (string, string, error) {
 	return outBuf.String(), outBuf.String(), nil
 }
 
-func handlePwdCommand() string {
+func HandlePwdCommand() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		return fmt.Sprintf("cannot print working directory: %v\n", err)
@@ -175,7 +175,7 @@ func handlePwdCommand() string {
 	return fmt.Sprintf("%v\n", dir)
 }
 
-func handleCdCommand(args []string) string {
+func HandleCdCommand(args []string) string {
 	if len(args) == 0 {
 		return ""
 	}
@@ -195,7 +195,7 @@ func handleCdCommand(args []string) string {
 	return ""
 }
 
-func addToHistoryCommands(historyCommands []string, commands []Command) []string {
+func AddToHistoryCommands(historyCommands []string, commands []Command) []string {
 	for _, command := range commands {
 		historyCommands = append(historyCommands, formatHistoryCommand(command))
 	}
@@ -207,44 +207,84 @@ func formatHistoryCommand(command Command) string {
 	return fmt.Sprintf("%v %v\n", command.Path, strings.Join(command.Args, " "))
 }
 
-func handleHistoryCommand(args []string, historyCommands []string) []string {
+func HandleHistoryCommand(args []string, history []string) []string {
 	if len(args) > 2 {
-		return historyCommands
+		return history
 	}
 
-	// example: history 2
-	if len(args) <= 1 {
-		limit := int64(len(historyCommands))
-		if len(args) > 0 {
-			limitInt, err := strconv.ParseInt(args[0], 10, 64)
-			if err == nil {
-				limit = limitInt
-			}
-		}
+	// Use a switch for clearer intent
+	var command string
+	if len(args) > 0 {
+		command = args[0]
+	}
 
-		i := len(historyCommands) - int(limit)
-		for i < len(historyCommands) {
-			historyCommand := historyCommands[i]
-			fmt.Printf("%v  %v", i+1, historyCommand)
-			i++
-		}
-	} else {
-		filePath := args[1]
-		file, err := os.Open(filePath)
-		if err != nil {
-			return historyCommands
-		}
+	switch command {
+	case "-r":
+		return readHistoryFromFile(args, history)
+	case "-w":
+		saveHistoryToFile(args, history)
+	default:
+		printHistory(args, history)
+	}
 
-		defer file.Close()
+	return history
+}
 
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			line := scanner.Text()
-			if line != "" {
-				historyCommands = append(historyCommands, fmt.Sprintf("%v\n", line))
-			}
+func printHistory(args []string, history []string) {
+	limit := len(history)
+
+	if len(args) > 0 {
+		if val, err := strconv.Atoi(args[0]); err == nil {
+			limit = val
 		}
 	}
 
-	return historyCommands
+	startIndex := len(history) - limit
+	if startIndex <= 0 {
+		startIndex = 0
+	}
+
+	for i := startIndex; i < len(history); i++ {
+		fmt.Printf("%v  %v", i+1, history[i])
+	}
+}
+
+func readHistoryFromFile(args []string, history []string) []string {
+	if len(args) < 2 {
+		return history
+	}
+
+	filePath := args[1]
+	file, err := os.Open(filePath)
+	if err != nil {
+		return history
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line != "" {
+			history = append(history, fmt.Sprintf("%v\n", line))
+		}
+	}
+
+	return history
+}
+
+func saveHistoryToFile(args []string, history []string) {
+	if len(args) < 2 {
+		return
+	}
+
+	filePath := args[1]
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	for _, command := range history {
+		fmt.Fprint(file, command)
+	}
 }

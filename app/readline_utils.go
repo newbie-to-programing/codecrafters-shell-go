@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,7 +15,7 @@ type UnifiedCompleter struct {
 	builtins  []string
 	lastInput string
 	// We need the instance to trigger a redraw
-	ReadLine *readline.Instance
+	readLine *readline.Instance
 }
 
 func NewUnifiedCompleter(builtins []string) *UnifiedCompleter {
@@ -22,7 +23,7 @@ func NewUnifiedCompleter(builtins []string) *UnifiedCompleter {
 }
 
 func (u *UnifiedCompleter) SetInstance(rl *readline.Instance) {
-	u.ReadLine = rl
+	u.readLine = rl
 }
 
 func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
@@ -81,7 +82,7 @@ func (u *UnifiedCompleter) Do(line []rune, pos int) (newLine [][]rune, length in
 	if typedSoFar == u.lastInput {
 		// SECOND TAB: Print list and redraw
 		fmt.Printf("\n%s\n", strings.Join(fullMatches, "  "))
-		u.ReadLine.Refresh()
+		u.readLine.Refresh()
 	} else {
 		fmt.Print("\a") // Play terminal bell
 		u.lastInput = typedSoFar
@@ -121,4 +122,28 @@ func (l *MyListener) OnChange(line []rune, pos int, key rune) (newLine []rune, n
 		}
 	}
 	return nil, 0, false
+}
+
+func InitializeReadline() *readline.Instance {
+	completer := NewUnifiedCompleter([]string{"echo", "exit"})
+	l, err := readline.NewEx(&readline.Config{
+		Prompt:       "$ ",
+		AutoComplete: completer,
+		Listener:     &MyListener{},
+	})
+	if err != nil {
+		panic(err)
+	}
+	completer.SetInstance(l)
+
+	return l
+}
+
+func HandleReadlineError(err error) LoopAction {
+	if errors.Is(err, readline.ErrInterrupt) {
+		// User pressed Ctrl+C
+		return ContinueLoop
+	}
+
+	return StopLoop
 }
