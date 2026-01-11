@@ -311,8 +311,6 @@ func appendHistoryToFile(args []string, history []string) {
 		historyToBeAppended = append(historyToBeAppended, history[i])
 	}
 
-	fmt.Println(historyToBeAppended)
-
 	filePath := args[1]
 	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
