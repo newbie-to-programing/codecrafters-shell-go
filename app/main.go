@@ -52,6 +52,7 @@ func main() {
 		var res CommandResult
 		switch command {
 		case ExitCommand:
+			SaveHistoryOnExit(historyCommands)
 			os.Exit(0)
 		case EchoCommand:
 			ret := HandleEchoCommand(otherArgs)

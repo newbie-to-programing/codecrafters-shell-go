@@ -326,3 +326,8 @@ func LoadHistoryOnStartup() []string {
 	filePath := os.Getenv("HISTFILE")
 	return HandleHistoryCommand([]string{"-r", filePath}, make([]string, 0))
 }
+
+func SaveHistoryOnExit(history []string) {
+	filePath := os.Getenv("HISTFILE")
+	HandleHistoryCommand([]string{"-w", filePath}, history)
+}
