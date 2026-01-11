@@ -223,30 +223,13 @@ func HandleHistoryCommand(args []string, history []string) []string {
 		return readHistoryFromFile(args, history)
 	case "-w":
 		saveHistoryToFile(args, history)
+	case "-a":
+		appendHistoryToFile(args, history)
 	default:
 		printHistory(args, history)
 	}
 
 	return history
-}
-
-func printHistory(args []string, history []string) {
-	limit := len(history)
-
-	if len(args) > 0 {
-		if val, err := strconv.Atoi(args[0]); err == nil {
-			limit = val
-		}
-	}
-
-	startIndex := len(history) - limit
-	if startIndex <= 0 {
-		startIndex = 0
-	}
-
-	for i := startIndex; i < len(history); i++ {
-		fmt.Printf("%v  %v", i+1, history[i])
-	}
 }
 
 func readHistoryFromFile(args []string, history []string) []string {
@@ -285,6 +268,58 @@ func saveHistoryToFile(args []string, history []string) {
 	defer file.Close()
 
 	for _, command := range history {
+		fmt.Fprint(file, command)
+	}
+}
+
+func printHistory(args []string, history []string) {
+	limit := len(history)
+
+	if len(args) > 0 {
+		if val, err := strconv.Atoi(args[0]); err == nil {
+			limit = val
+		}
+	}
+
+	startIndex := len(history) - limit
+	if startIndex <= 0 {
+		startIndex = 0
+	}
+
+	for i := startIndex; i < len(history); i++ {
+		fmt.Printf("%v  %v", i+1, history[i])
+	}
+}
+
+func appendHistoryToFile(args []string, history []string) {
+	if len(args) < 2 {
+		return
+	}
+
+	historyToBeAppended := make([]string, 0)
+
+	prevSeen := -1
+	currSeen := -1
+	for i, command := range history {
+		if strings.HasPrefix(command, "history -a") {
+			prevSeen = currSeen
+			currSeen = i
+		}
+	}
+
+	for i := prevSeen + 1; i < currSeen; i++ {
+		historyToBeAppended = append(historyToBeAppended, history[i])
+	}
+
+	fmt.Println(historyToBeAppended)
+
+	filePath := args[1]
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		return
+	}
+
+	for _, command := range historyToBeAppended {
 		fmt.Fprint(file, command)
 	}
 }
