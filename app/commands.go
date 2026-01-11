@@ -321,3 +321,8 @@ func appendHistoryToFile(args []string, history []string) {
 		fmt.Fprint(file, command)
 	}
 }
+
+func LoadHistoryOnStartup() []string {
+	filePath := os.Getenv("HISTFILE")
+	return HandleHistoryCommand([]string{"-r", filePath}, make([]string, 0))
+}

@@ -14,6 +14,8 @@ func main() {
 	l := InitializeReadline()
 	defer l.Close()
 
+	LoadHistoryOnStartup()
+
 	for {
 		fmt.Print("$ ")
 
