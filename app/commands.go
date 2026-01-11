@@ -320,4 +320,6 @@ func appendHistoryToFile(args []string, history []string) {
 	for _, command := range historyToBeAppended {
 		fmt.Fprint(file, command)
 	}
+
+	fmt.Fprint(file, "\n")
 }
