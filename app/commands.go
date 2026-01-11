@@ -204,6 +204,9 @@ func AddToHistoryCommands(historyCommands []string, commands []Command) []string
 }
 
 func formatHistoryCommand(command Command) string {
+	if len(command.Args) == 0 {
+		return fmt.Sprintf("%v\n", command.Path)
+	}
 	return fmt.Sprintf("%v %v\n", command.Path, strings.Join(command.Args, " "))
 }
 
