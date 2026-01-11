@@ -307,7 +307,7 @@ func appendHistoryToFile(args []string, history []string) {
 		}
 	}
 
-	for i := prevSeen + 1; i < currSeen; i++ {
+	for i := prevSeen + 1; i <= currSeen; i++ {
 		historyToBeAppended = append(historyToBeAppended, history[i])
 	}
 
@@ -320,6 +320,4 @@ func appendHistoryToFile(args []string, history []string) {
 	for _, command := range historyToBeAppended {
 		fmt.Fprint(file, command)
 	}
-
-	fmt.Fprint(file, "\n")
 }
