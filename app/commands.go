@@ -333,6 +333,6 @@ func LoadHistoryOnStartup() []string {
 func SaveHistoryOnExit(history []string) {
 	filePath := os.Getenv("HISTFILE")
 	historyFromFile := HandleHistoryCommand([]string{"-r", filePath}, []string{})
-	diff := Intersection(historyFromFile, history)
+	diff := NotIn(historyFromFile, history)
 	HandleHistoryCommand([]string{"-w", filePath}, diff)
 }
